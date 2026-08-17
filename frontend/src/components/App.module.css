@@ -1,0 +1,79 @@
+.app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.navbar {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 1px;
+}
+
+.navItems {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.navBtn {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.navBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+}
+
+.navBtn.active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+}
+
+.main {
+  padding: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px 15px;
+    gap: 10px;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+
+  .navItems {
+    gap: 5px;
+  }
+
+  .navBtn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+}
