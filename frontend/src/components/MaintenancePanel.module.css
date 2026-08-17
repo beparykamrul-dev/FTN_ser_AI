@@ -1,0 +1,288 @@
+.panel {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 30px;
+  margin-top: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  margin-bottom: 30px;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 15px;
+}
+
+.header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.header p {
+  margin: 5px 0 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: #667eea;
+}
+
+.tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.tasksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.taskCard {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+  animation: cardEntry 0.3s ease;
+}
+
+@keyframes cardEntry {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.taskCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.taskCard.running {
+  border-left-color: #ff9800;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.taskCard.failed {
+  border-left-color: #f44336;
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+}
+
+.taskHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.icon {
+  font-size: 2rem;
+}
+
+.taskHeader h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.description {
+  margin: 10px 0;
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(102, 126, 234, 0.2);
+  color: #667eea;
+}
+
+.badge.success {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+}
+
+.badge.failed {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+.duration {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.times {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.times small {
+  color: #999;
+  font-size: 0.75rem;
+}
+
+.runBtn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.runBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+
+.runBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.backupsContainer {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.backupsContainer h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.backupsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.backupItem {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.backupItem:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.backupInfo h4 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.backupInfo p {
+  margin: 0;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.backupStatus {
+  display: flex;
+  align-items: center;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.details {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 12px;
+}
+
+.details h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.details pre {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+@media (max-width: 768px) {
+  .panel {
+    padding: 20px;
+  }
+
+  .tasksGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .header h2 {
+    font-size: 1.4rem;
+  }
+}
