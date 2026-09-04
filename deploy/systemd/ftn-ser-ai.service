@@ -1,0 +1,23 @@
+[Unit]
+Description=FTN SER AI Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ftn
+Group=ftn
+WorkingDirectory=/opt/FTN_ser_AI
+Environment=FTN_ADDR=127.0.0.1:8080
+ExecStart=/opt/FTN_ser_AI/bin/ftn-ser-ai
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/FTN_ser_AI
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target
