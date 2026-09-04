@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	"errors"
@@ -8,19 +8,19 @@ import (
 
 // ServiceState is the minimal backend state consumed by the AI reconciler.
 type ServiceState struct {
-	NodeID       string    `json:"node_id"`
-	ServiceID    string    `json:"service_id"`
-	Healthy      bool      `json:"healthy"`
-	CPUPercent   float64   `json:"cpu_percent"`
-	MemoryPercent float64  `json:"memory_percent"`
-	LatencyMS    float64   `json:"latency_ms"`
-	PacketLoss   float64   `json:"packet_loss"`
-	ObservedAt   time.Time `json:"observed_at"`
+	NodeID        string    `json:"node_id"`
+	ServiceID     string    `json:"service_id"`
+	Healthy       bool      `json:"healthy"`
+	CPUPercent    float64   `json:"cpu_percent"`
+	MemoryPercent float64   `json:"memory_percent"`
+	LatencyMS     float64   `json:"latency_ms"`
+	PacketLoss    float64   `json:"packet_loss"`
+	ObservedAt    time.Time `json:"observed_at"`
 }
 
 type StateStore struct {
-	mu      sync.RWMutex
-	states  map[string]ServiceState
+	mu     sync.RWMutex
+	states map[string]ServiceState
 }
 
 func NewStateStore() *StateStore {
