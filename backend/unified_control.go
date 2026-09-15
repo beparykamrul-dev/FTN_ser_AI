@@ -28,11 +28,15 @@ type DataPlaneStatus struct {
 
 func (s *APIServer) controlSnapshot(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet { w.Header().Set("Allow", http.MethodGet); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
+	p := DefaultPersistencePolicy()
 	writeJSON(w, http.StatusOK, map[string]any{
 		"ok": true,
-		"resources": []FTNResource{{ID:"ftndns",Kind:"dns",Name:"FTNDNS",Location:"global",Healthy:true},{ID:"ddns",Kind:"ddns",Name:"DDNS",Location:"global",Healthy:true}},
+		"resources": []FTNResource{
+			{ID:"ftndns",Kind:"dns",Name:"FTNDNS",Location:"global",Healthy:true},
+			{ID:"ddns",Kind:"ddns",Name:"DDNS",Location:"global",Healthy:true},
+		},
 		"authorities": AuthorityZones(),
-		"data_plane": DataPlaneStatus{RAMFirst:true,RedisHotState:true,PostgresSource:true,AsyncPersist:true,DBOnRequestPath:false,CacheTTL:30*time.Second},
+		"data_plane": DataPlaneStatus{RAMFirst:p.RAMFirst,RedisHotState:p.RedisHotState,PostgresSource:p.PostgresDurable,AsyncPersist:p.AsyncPersist,DBOnRequestPath:!p.ReadPathDBFree,CacheTTL:p.CacheTTL},
 	})
 }
 
@@ -61,8 +65,9 @@ func (s *APIServer) controlResource(w http.ResponseWriter, r *http.Request) {
 	case "db": writeJSON(w,http.StatusOK,s.db.Get())
 	case "providers": writeJSON(w,http.StatusOK,map[string]any{"providers":s.providers.List()})
 	case "authorities": writeJSON(w,http.StatusOK,map[string]any{"zones":AuthorityZones()})
-	case "anycast": writeJSON(w,http.StatusOK,map[string]any{"status":"anycast-ready","routing":"nearest-healthy-node"})
+	case "anycast": writeJSON(w,http.StatusOK,map[string]any{"status":"anycast-ready","routing":"nearest-healthy-node","prefixes":DefaultAnycastPrefixes()})
 	case "ddns": writeJSON(w,http.StatusOK,map[string]any{"zone":"ftnddns.net","status":"engine-ready"})
+	case "dataplane": writeJSON(w,http.StatusOK,DefaultPersistencePolicy())
 	case "ipam": writeJSON(w,http.StatusOK,map[string]any{"status":"registry-ready"})
 	case "jobs": writeJSON(w,http.StatusOK,map[string]any{"status":"registry-ready"})
 	case "audit": writeJSON(w,http.StatusOK,map[string]any{"status":"registry-ready"})
