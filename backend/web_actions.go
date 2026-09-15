@@ -19,7 +19,7 @@ func (s *WebActionStore) Update(a WebAction){s.mu.Lock();defer s.mu.Unlock();for
 func (s *WebActionStore) Get(id string)(WebAction,bool){s.mu.RLock();defer s.mu.RUnlock();for _,a:=range s.items{if a.ID==id{return a,true}};return WebAction{},false}
 func (s *WebActionStore) List()[]WebAction{s.mu.RLock();defer s.mu.RUnlock();return append([]WebAction(nil),s.items...)}
 func (s *APIServer) webActions(w http.ResponseWriter,r *http.Request){
-	if r.Method==http.MethodGet { writeJSON(w,http.StatusOK,map[string]any{"actions":s.actions.List()});return }
+	if r.Method==http.MethodGet { writeJSON(w,http.StatusOK,map[string]any{"actions":s.actions.List(),"catalog":ActionCatalog()});return }
 	if r.Method!=http.MethodPost {w.Header().Set("Allow","GET, POST");writeJSON(w,http.StatusMethodNotAllowed,map[string]string{"error":"method not allowed"});return}
 	var in ActionRequest;dec:=json.NewDecoder(http.MaxBytesReader(w,r.Body,64<<10));if err:=dec.Decode(&in);err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"invalid JSON"});return}
 	a,err:=s.actions.Create(in);if err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"action requires kind, target and confirm=true"});return}
