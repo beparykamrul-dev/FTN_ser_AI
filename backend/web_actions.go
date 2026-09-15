@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type WebAction struct { ID string `json:"id"`; Kind string `json:"kind"`; Target string `json:"target"`; Status string `json:"status"`; RequestedBy string `json:"requested_by,omitempty"`; CreatedAt time.Time `json:"created_at"`; UpdatedAt time.Time `json:"updated_at"`; Error string `json:"error,omitempty"` }
+type WebAction struct { ID string `json:"id"`; Kind string `json:"kind"`; Target string `json:"target"`; Status string `json:"status"`; RequestedBy string `json:"requested_by,omitempty"`; CreatedAt time.Time `json:"created_at"`; UpdatedAt time.Time `json:"updated_at"`; Error string `json:"error,omitempty"`; Result json.RawMessage `json:"result,omitempty"` }
 type ActionRequest struct { Kind string `json:"kind"`; Target string `json:"target"`; RequestedBy string `json:"requested_by,omitempty"`; Confirm bool `json:"confirm"` }
 type WebActionStore struct { mu sync.RWMutex; items []WebAction }
 func NewWebActionStore()*WebActionStore{return &WebActionStore{items:make([]WebAction,0,128)}}
