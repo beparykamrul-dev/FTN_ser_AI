@@ -1,13 +1,13 @@
 package backend
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"encoding/json"
-	"net/http"
-	"strings"
-	"sync"
-	"time"
+ "crypto/rand"
+ "encoding/hex"
+ "encoding/json"
+ "net/http"
+ "strings"
+ "sync"
+ "time"
 )
 
 type WebAction struct { ID string `json:"id"`; Kind string `json:"kind"`; Target string `json:"target"`; Status string `json:"status"`; RequestedBy string `json:"requested_by,omitempty"`; CreatedAt time.Time `json:"created_at"`; UpdatedAt time.Time `json:"updated_at"`; Error string `json:"error,omitempty"`; Result json.RawMessage `json:"result,omitempty"` }
@@ -19,11 +19,20 @@ func (s *WebActionStore) Update(a WebAction){s.mu.Lock();defer s.mu.Unlock();for
 func (s *WebActionStore) Get(id string)(WebAction,bool){s.mu.RLock();defer s.mu.RUnlock();for _,a:=range s.items{if a.ID==id{return a,true}};return WebAction{},false}
 func (s *WebActionStore) List()[]WebAction{s.mu.RLock();defer s.mu.RUnlock();return append([]WebAction(nil),s.items...)}
 func (s *APIServer) webActions(w http.ResponseWriter,r *http.Request){
-	if r.Method==http.MethodGet { writeJSON(w,http.StatusOK,map[string]any{"actions":s.actions.List(),"catalog":ActionCatalog()});return }
-	if r.Method!=http.MethodPost {w.Header().Set("Allow","GET, POST");writeJSON(w,http.StatusMethodNotAllowed,map[string]string{"error":"method not allowed"});return}
-	var in ActionRequest;dec:=json.NewDecoder(http.MaxBytesReader(w,r.Body,64<<10));if err:=dec.Decode(&in);err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"invalid JSON"});return}
-	a,err:=s.actions.Create(in);if err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"action requires kind, target and confirm=true"});return}
-	a=s.executor.Execute(r.Context(),a);s.actions.Update(a)
-	writeJSON(w,http.StatusAccepted,map[string]any{"ok":true,"action":a})
+ if r.Method==http.MethodGet {writeJSON(w,http.StatusOK,map[string]any{"actions":s.actions.List(),"catalog":ActionCatalog(),"approval_configured":approvalConfigured()});return}
+ if r.Method!=http.MethodPost {w.Header().Set("Allow","GET, POST");writeJSON(w,http.StatusMethodNotAllowed,map[string]string{"error":"method not allowed"});return}
+ var in ActionRequest;dec:=json.NewDecoder(http.MaxBytesReader(w,r.Body,64<<10));if err:=dec.Decode(&in);err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"invalid JSON"});return}
+ a,err:=s.actions.Create(in);if err!=nil{writeJSON(w,http.StatusBadRequest,map[string]string{"error":"action requires kind, target and confirm=true"});return}
+ a=s.executor.Execute(r.Context(),a);s.actions.Update(a);writeJSON(w,http.StatusAccepted,map[string]any{"ok":true,"action":a})
 }
-func (s *APIServer) webActionByID(w http.ResponseWriter,r *http.Request){if r.Method!=http.MethodGet{w.Header().Set("Allow",http.MethodGet);writeJSON(w,http.StatusMethodNotAllowed,map[string]string{"error":"method not allowed"});return};id:=strings.TrimPrefix(r.URL.Path,"/api/v1/control/actions/");id=strings.Trim(id,"/");if id==""||strings.Contains(id,"/"){writeJSON(w,http.StatusBadRequest,map[string]string{"error":"invalid action id"});return};a,ok:=s.actions.Get(id);if !ok{writeJSON(w,http.StatusNotFound,map[string]string{"error":"action not found"});return};writeJSON(w,http.StatusOK,map[string]any{"action":a})}
+func (s *APIServer) webActionByID(w http.ResponseWriter,r *http.Request){
+ if r.Method==http.MethodPost && strings.HasSuffix(strings.TrimRight(r.URL.Path,"/"),"/approve") {s.approveWebAction(w,r);return}
+ if r.Method!=http.MethodGet {w.Header().Set("Allow","GET, POST");writeJSON(w,http.StatusMethodNotAllowed,map[string]string{"error":"method not allowed"});return}
+ id:=strings.TrimPrefix(r.URL.Path,"/api/v1/control/actions/");id=strings.Trim(id,"/");if id==""||strings.Contains(id,"/"){writeJSON(w,http.StatusBadRequest,map[string]string{"error":"invalid action id"});return};a,ok:=s.actions.Get(id);if !ok{writeJSON(w,http.StatusNotFound,map[string]string{"error":"action not found"});return};writeJSON(w,http.StatusOK,map[string]any{"action":a})
+}
+func (s *APIServer) approveWebAction(w http.ResponseWriter,r *http.Request){
+ path:=strings.Trim(strings.TrimPrefix(r.URL.Path,"/api/v1/control/actions/"),"/");id:=strings.TrimSuffix(path,"/approve");id=strings.Trim(id,"/");if id==""||strings.Contains(id,"/"){writeJSON(w,http.StatusBadRequest,map[string]string{"error":"invalid action id"});return}
+ if err:=validateApprovalSecret(r.Header.Get("X-FTN-Approval-Secret"));err!=nil{writeJSON(w,http.StatusForbidden,map[string]string{"error":"approval denied"});return}
+ a,ok:=s.actions.Get(id);if !ok{writeJSON(w,http.StatusNotFound,map[string]string{"error":"action not found"});return};if a.Status!="pending_approval"{writeJSON(w,http.StatusConflict,map[string]string{"error":"action is not pending approval"});return}
+ a=s.executor.ExecuteApproved(r.Context(),a);s.actions.Update(a);writeJSON(w,http.StatusOK,map[string]any{"ok":true,"action":a})
+}
