@@ -31,7 +31,7 @@ func NewAPIServer() *APIServer {
     _=adapters.Register(NewGoogleAdapterFromEnv())
     _=adapters.Register(NewRenderAdapterFromEnv())
     agents:=NewAgentHub()
-    return &APIServer{store:NewStateStore(),mesh:NewDNSMeshStore(),db:NewDBStore(),monitor:NewMonitorStore(),providers:NewProviderStore(),agents:agents,github:github,adapters:adapters,actions:NewWebActionStore(),executor:NewActionExecutor(agents)}
+    return &APIServer{store:NewStateStore(),mesh:NewDNSMeshStore(),db:NewDBStore(),monitor:NewMonitorStore(),providers:NewProviderStore(),agents:agents,github:github,adapters:adapters,actions:NewWebActionStore(),executor:NewActionExecutor(agents,adapters)}
 }
 
 func (s *APIServer) Handler() http.Handler {
