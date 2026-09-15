@@ -20,6 +20,7 @@ type APIServer struct {
     github *GitHubAdapter
     adapters *AdapterEngine
     actions *WebActionStore
+    executor *ActionExecutor
 }
 
 func NewAPIServer() *APIServer {
@@ -29,7 +30,8 @@ func NewAPIServer() *APIServer {
     _=adapters.Register(NewCloudflareAdapterFromEnv())
     _=adapters.Register(NewGoogleAdapterFromEnv())
     _=adapters.Register(NewRenderAdapterFromEnv())
-    return &APIServer{store:NewStateStore(),mesh:NewDNSMeshStore(),db:NewDBStore(),monitor:NewMonitorStore(),providers:NewProviderStore(),agents:NewAgentHub(),github:github,adapters:adapters,actions:NewWebActionStore()}
+    agents:=NewAgentHub()
+    return &APIServer{store:NewStateStore(),mesh:NewDNSMeshStore(),db:NewDBStore(),monitor:NewMonitorStore(),providers:NewProviderStore(),agents:agents,github:github,adapters:adapters,actions:NewWebActionStore(),executor:NewActionExecutor(agents)}
 }
 
 func (s *APIServer) Handler() http.Handler {
@@ -50,6 +52,7 @@ func (s *APIServer) Handler() http.Handler {
     mux.HandleFunc("/api/v1/github/webhook",s.githubWebhook)
     mux.HandleFunc("/api/v1/github/workflow",s.githubWorkflow)
     mux.HandleFunc("/api/v1/control/adapters",s.adapterStatus)
+    mux.HandleFunc("/api/v1/control/actions/",s.webActionByID)
     mux.HandleFunc("/api/v1/control/actions",s.webActions)
     return requestLog(mux)
 }
