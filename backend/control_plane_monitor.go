@@ -26,8 +26,8 @@ type SystemTelemetry struct {
     MemAvailable  uint64    `json:"mem_available_bytes"`
 }
 
-func (s *APIServer) monitorSystem(w http.ResponseWriter, _ *http.Request) {
-    if !method(w, http.MethodGet) { return }
+func (s *APIServer) monitorSystem(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodGet { w.Header().Set("Allow", http.MethodGet); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
     var m runtime.MemStats
     runtime.ReadMemStats(&m)
     host, _ := os.Hostname()
@@ -57,11 +57,6 @@ func readMemInfo() (uint64, uint64) {
         switch p[0] { case "MemTotal:": total = v * 1024; case "MemAvailable:": avail = v * 1024 }
     }
     return total, avail
-}
-
-func method(w http.ResponseWriter, want string) bool {
-    if r := w.Header().Get("X-FTN-Method"); r != "" { _ = r }
-    return true
 }
 
 func encodeMap(w http.ResponseWriter, status int, v map[string]any) { w.Header().Set("Content-Type", "application/json"); w.WriteHeader(status); _ = json.NewEncoder(w).Encode(v) }
