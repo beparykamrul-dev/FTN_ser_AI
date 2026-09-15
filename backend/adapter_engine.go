@@ -62,6 +62,15 @@ func (e *AdapterEngine) Check(ctx context.Context, id string) AdapterStatus {
     return st
 }
 
+// ExecuteHealth exposes only the typed provider health operation to the control plane.
+// Credentials remain inside the adapter and are never returned to the web client.
+func (e *AdapterEngine) ExecuteHealth(ctx context.Context, id string) error {
+    e.mu.RLock(); a := e.adapters[id]; e.mu.RUnlock()
+    if a == nil { return errors.New("adapter not found") }
+    if !a.Enabled() { return errors.New("adapter disabled or not configured") }
+    return a.Health(ctx)
+}
+
 func (e *AdapterEngine) List() []AdapterStatus {
     e.mu.RLock(); defer e.mu.RUnlock()
     out:=make([]AdapterStatus,0,len(e.status)); for _,s:=range e.status { out=append(out,s) }; return out
