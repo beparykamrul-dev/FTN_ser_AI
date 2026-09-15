@@ -11,12 +11,21 @@ import (
 )
 
 type APIServer struct {
-	store *StateStore
-	mesh  *DNSMeshState
+	store     *StateStore
+	mesh      *DNSMeshStore
+	db        *DBStore
+	monitor   *MonitorStore
+	providers *ProviderStore
 }
 
 func NewAPIServer() *APIServer {
-	return &APIServer{store: NewStateStore(), mesh: NewDNSMeshState()}
+	return &APIServer{
+		store: NewStateStore(),
+		mesh: NewDNSMeshStore(),
+		db: NewDBStore(),
+		monitor: NewMonitorStore(),
+		providers: NewProviderStore(),
+	}
 }
 
 func (s *APIServer) Handler() http.Handler {
@@ -26,6 +35,10 @@ func (s *APIServer) Handler() http.Handler {
 	mux.HandleFunc("/api/v1/state/", s.getState)
 	mux.HandleFunc("/api/v1/monitor/system", s.monitorSystem)
 	mux.HandleFunc("/api/v1/dns/mesh", s.dnsMesh)
+	mux.HandleFunc("/api/v1/control/snapshot", s.controlSnapshot)
+	mux.HandleFunc("/api/v1/control/health", s.controlHealth)
+	mux.HandleFunc("/api/v1/control/capabilities", s.controlCapabilities)
+	mux.HandleFunc("/api/v1/control/", s.controlResource)
 	return requestLog(mux)
 }
 
