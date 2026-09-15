@@ -10,15 +10,22 @@ import (
 	"time"
 )
 
-type APIServer struct { store *StateStore }
+type APIServer struct {
+	store *StateStore
+	mesh  *DNSMeshState
+}
 
-func NewAPIServer() *APIServer { return &APIServer{store: NewStateStore()} }
+func NewAPIServer() *APIServer {
+	return &APIServer{store: NewStateStore(), mesh: NewDNSMeshState()}
+}
 
 func (s *APIServer) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.health)
 	mux.HandleFunc("/api/v1/state", s.state)
 	mux.HandleFunc("/api/v1/state/", s.getState)
+	mux.HandleFunc("/api/v1/monitor/system", s.monitorSystem)
+	mux.HandleFunc("/api/v1/dns/mesh", s.dnsMesh)
 	return requestLog(mux)
 }
 
