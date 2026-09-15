@@ -7,35 +7,28 @@ import (
 )
 
 type FTNResource struct {
-	ID       string `json:"id"`
-	Kind     string `json:"kind"`
-	Name     string `json:"name"`
+	ID string `json:"id"`
+	Kind string `json:"kind"`
+	Name string `json:"name"`
 	Location string `json:"location,omitempty"`
 	Endpoint string `json:"endpoint,omitempty"`
-	Local    bool   `json:"local"`
-	Healthy  bool   `json:"healthy"`
+	Local bool `json:"local"`
+	Healthy bool `json:"healthy"`
 	LatencyMS float64 `json:"latency_ms,omitempty"`
 }
 
 type DataPlaneStatus struct {
-	RAMFirst       bool          `json:"ram_first"`
-	RedisHotState  bool          `json:"redis_hot_state"`
-	PostgresSource bool          `json:"postgres_source_of_truth"`
-	AsyncPersist   bool          `json:"async_persist"`
-	DBOnRequestPath bool         `json:"db_on_request_path"`
-	CacheTTL       time.Duration `json:"cache_ttl"`
+	RAMFirst bool `json:"ram_first"`
+	RedisHotState bool `json:"redis_hot_state"`
+	PostgresSource bool `json:"postgres_source_of_truth"`
+	AsyncPersist bool `json:"async_persist"`
+	DBOnRequestPath bool `json:"db_on_request_path"`
+	CacheTTL time.Duration `json:"cache_ttl"`
 }
 
 func (s *APIServer) controlSnapshot(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet { w.Header().Set("Allow", http.MethodGet); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
-	writeJSON(w, http.StatusOK, map[string]any{
-		"ok": true,
-		"resources": []FTNResource{
-			{ID:"ftndns", Kind:"dns", Name:"FTNDNS", Location:"global", Healthy:true},
-			{ID:"ddns", Kind:"ddns", Name:"DDNS", Location:"global", Healthy:true},
-		},
-		"data_plane": DataPlaneStatus{RAMFirst:true, RedisHotState:true, PostgresSource:true, AsyncPersist:true, DBOnRequestPath:false, CacheTTL:30*time.Second},
-	})
+	writeJSON(w, http.StatusOK, map[string]any{"ok":true,"resources":[]FTNResource{{ID:"ftndns",Kind:"dns",Name:"FTNDNS",Location:"global",Healthy:true},{ID:"ddns",Kind:"ddns",Name:"DDNS",Location:"global",Healthy:true}},"data_plane":DataPlaneStatus{RAMFirst:true,RedisHotState:true,PostgresSource:true,AsyncPersist:true,DBOnRequestPath:false,CacheTTL:30*time.Second}})
 }
 
 func (s *APIServer) controlHealth(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +39,11 @@ func (s *APIServer) controlHealth(w http.ResponseWriter, r *http.Request) {
 func (s *APIServer) controlCapabilities(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet { w.Header().Set("Allow", http.MethodGet); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
 	writeJSON(w, http.StatusOK, DefaultCapabilities())
+}
+
+func (s *APIServer) dnsMesh(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet { w.Header().Set("Allow", http.MethodGet); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
+	writeJSON(w, http.StatusOK, s.mesh.Get())
 }
 
 func (s *APIServer) controlResource(w http.ResponseWriter, r *http.Request) {
