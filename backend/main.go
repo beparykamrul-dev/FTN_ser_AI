@@ -25,6 +25,9 @@ func NewAPIServer() *APIServer {
     github:=NewGitHubAdapterFromEnv()
     adapters:=NewAdapterEngine()
     _=adapters.Register(github)
+    _=adapters.Register(NewCloudflareAdapterFromEnv())
+    _=adapters.Register(NewGoogleAdapterFromEnv())
+    _=adapters.Register(NewRenderAdapterFromEnv())
     return &APIServer{store:NewStateStore(),mesh:NewDNSMeshStore(),db:NewDBStore(),monitor:NewMonitorStore(),providers:NewProviderStore(),agents:NewAgentHub(),github:github,adapters:adapters}
 }
 
@@ -52,7 +55,7 @@ func (s *APIServer) Handler() http.Handler {
 func (s *APIServer) adapterStatus(w http.ResponseWriter,r *http.Request){
     if r.Method!=http.MethodGet{w.Header().Set("Allow",http.MethodGet);writeJSON(w,http.StatusMethodNotAllowed,map[string]string{"error":"method not allowed"});return}
     ctx,cancel:=context.WithTimeout(r.Context(),5*time.Second);defer cancel()
-    if s.github.Enabled(){_=s.adapters.Check(ctx,"github")}
+    for _,id:=range []string{"github","cloudflare","google","render"}{_=s.adapters.Check(ctx,id)}
     writeJSON(w,http.StatusOK,map[string]any{"adapters":s.adapters.List()})
 }
 func (s *APIServer) health(w http.ResponseWriter,_ *http.Request){writeJSON(w,http.StatusOK,map[string]any{"status":"ok","service":"ftn-ser-ai","time":time.Now().UTC(),"github_adapter":s.github.Enabled()})}
