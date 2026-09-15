@@ -1,18 +1,18 @@
 package backend
 
 import (
+    "crypto/subtle"
     "encoding/json"
     "io"
     "net/http"
+    "os"
     "strings"
 )
 
 func (s *APIServer) githubStatus(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodGet { w.Header().Set("Allow", http.MethodGet); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
     writeJSON(w, http.StatusOK, map[string]any{
-        "enabled": s.github.Enabled(),
-        "adapter": "github",
-        "mode": "live-adapter",
+        "enabled": s.github.Enabled(), "adapter": "github", "mode": "live-adapter",
         "repository": map[string]string{"owner":s.github.Owner,"repo":s.github.Repo,"branch":s.github.Branch},
         "features": []string{"repository-read","workflow-dispatch","webhook-events"},
     })
@@ -38,8 +38,8 @@ func (s *APIServer) githubWebhook(w http.ResponseWriter, r *http.Request) {
 func (s *APIServer) githubWorkflow(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodPost { w.Header().Set("Allow", http.MethodPost); writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error":"method not allowed"}); return }
     guard := strings.TrimSpace(r.Header.Get("X-FTN-Control-Token"))
-    expected := strings.TrimSpace(getEnv("FTN_CONTROL_SECRET"))
-    if expected == "" || guard == "" || !secureEqual(guard, expected) { writeJSON(w, http.StatusUnauthorized, map[string]string{"error":"invalid control credentials"}); return }
+    expected := strings.TrimSpace(os.Getenv("FTN_CONTROL_SECRET"))
+    if expected == "" || guard == "" || subtle.ConstantTimeCompare([]byte(guard), []byte(expected)) != 1 { writeJSON(w, http.StatusUnauthorized, map[string]string{"error":"invalid control credentials"}); return }
     var in struct { Workflow string `json:"workflow"`; Inputs map[string]string `json:"inputs"` }
     dec := json.NewDecoder(http.MaxBytesReader(w, r.Body, 128<<10)); dec.DisallowUnknownFields()
     if err := dec.Decode(&in); err != nil || strings.TrimSpace(in.Workflow) == "" { writeJSON(w, http.StatusBadRequest, map[string]string{"error":"workflow is required"}); return }
@@ -47,5 +47,3 @@ func (s *APIServer) githubWorkflow(w http.ResponseWriter, r *http.Request) {
     if err := s.github.DispatchWorkflow(r.Context(), in.Workflow, in.Inputs); err != nil { writeJSON(w, http.StatusBadGateway, map[string]any{"ok":false,"error":err.Error()}); return }
     writeJSON(w, http.StatusAccepted, map[string]any{"ok":true,"workflow":in.Workflow,"branch":s.github.Branch,"status":"dispatched"})
 }
-
-func getEnv(key string) string { return strings.TrimSpace(envLookup(key)) }
